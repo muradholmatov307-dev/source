@@ -13,27 +13,20 @@ if not game:IsLoaded() then
 end
 
 function FurstyHub:CreateGUI(config)
-    -- Проверяем config
-    if not config then
-        config = {}
-    end
+    if not config then config = {} end
     
-    -- Конфигурация по умолчанию
     config.Name = config.Name or "FurstyHub"
     config.Version = config.Version or "1.0"
     config.Discord = config.Discord or "dsc.gg/furstyhub"
     config.WatermarkEnabled = config.WatermarkEnabled == nil and true or config.WatermarkEnabled
 
-    -- Основной GUI объект
     local GUI = {}
-    
-    -- Watermark система
     local WatermarkEnabled = config.WatermarkEnabled
     
+    -- Watermark система
     local function UpdateWatermark()
         if not WatermarkEnabled then return end
         
-        -- Удаляем старый watermark
         if game:GetService("CoreGui"):FindFirstChild(config.Name .. "Watermark") then
             game:GetService("CoreGui")[config.Name .. "Watermark"]:Destroy()
         end
@@ -44,7 +37,6 @@ function FurstyHub:CreateGUI(config)
         local Stroke = Instance.new("UIStroke")
         local FIcon = Instance.new("TextLabel")
         local TextLabel = Instance.new("TextLabel")
-        local PingLabel = Instance.new("TextLabel")
         
         WatermarkGui.Name = config.Name .. "Watermark"
         WatermarkGui.Parent = game.CoreGui
@@ -59,26 +51,21 @@ function FurstyHub:CreateGUI(config)
         UICorner.CornerRadius = UDim.new(0, 8)
         UICorner.Parent = WatermarkFrame
         
-        -- Анимированная обводка
         Stroke.Parent = WatermarkFrame
         Stroke.Color = Color3.fromRGB(255, 50, 50)
         Stroke.Thickness = 2
         Stroke.Transparency = 0.3
-        Stroke.LineJoinMode = Enum.LineJoinMode.Round
         
-        -- Иконка F
         FIcon.Name = "FIcon"
         FIcon.Parent = WatermarkFrame
         FIcon.BackgroundTransparency = 1
-        FIcon.Position = UDim2.new(0, 10, 0.5, -10)
+        FIcon.Position = UDim2.new(0.02, 0, 0.1, 0)
         FIcon.Size = UDim2.new(0, 25, 0, 25)
         FIcon.Font = Enum.Font.GothamBlack
         FIcon.Text = "F"
         FIcon.TextColor3 = Color3.fromRGB(255, 50, 50)
         FIcon.TextSize = 18
-        FIcon.TextStrokeTransparency = 0.8
         
-        -- Текст водяного знака
         TextLabel.Parent = WatermarkFrame
         TextLabel.BackgroundTransparency = 1
         TextLabel.Position = UDim2.new(0.15, 0, 0.1, 0)
@@ -89,21 +76,9 @@ function FurstyHub:CreateGUI(config)
         TextLabel.TextSize = 12
         TextLabel.TextXAlignment = Enum.TextXAlignment.Left
         
-        -- Пинг
-        PingLabel.Parent = WatermarkFrame
-        PingLabel.BackgroundTransparency = 1
-        PingLabel.Position = UDim2.new(0.15, 0, 0.55, 0)
-        PingLabel.Size = UDim2.new(0, 120, 0, 12)
-        PingLabel.Font = Enum.Font.Gotham
-        PingLabel.Text = "Ping: " .. math.random(20, 60) .. "ms"
-        PingLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
-        PingLabel.TextSize = 10
-        PingLabel.TextXAlignment = Enum.TextXAlignment.Left
-        
         -- Анимация обводки
         spawn(function()
             while WatermarkEnabled and WatermarkGui and WatermarkGui.Parent do
-                -- Пульсирующая анимация
                 for i = 1, 10 do
                     if not WatermarkGui or not WatermarkGui.Parent then break end
                     local alpha = 0.3 + (i * 0.07)
@@ -116,54 +91,25 @@ function FurstyHub:CreateGUI(config)
                     Stroke.Transparency = 1 - alpha
                     wait(0.05)
                 end
-                
-                -- Смена цвета обводки
-                local colors = {
-                    Color3.fromRGB(255, 50, 50),   -- Красный
-                    Color3.fromRGB(255, 100, 50),  -- Оранжевый
-                    Color3.fromRGB(255, 200, 50),  -- Желтый
-                    Color3.fromRGB(50, 255, 100),  -- Зеленый
-                    Color3.fromRGB(50, 150, 255),  -- Синий
-                    Color3.fromRGB(150, 50, 255)   -- Фиолетовый
-                }
-                
-                for _, color in ipairs(colors) do
-                    if not WatermarkGui or not WatermarkGui.Parent then break end
-                    game:GetService("TweenService"):Create(Stroke, TweenInfo.new(1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Color = color}):Play()
-                    wait(2)
-                end
             end
         end)
-        
-        -- Обновление пинга
-        spawn(function()
-            while WatermarkEnabled and WatermarkGui and WatermarkGui.Parent do
-                wait(3)
-                if PingLabel then
-                    PingLabel.Text = "Ping: " .. math.random(20, 60) .. "ms"
-                end
-            end
-        end)
-        
-        -- Анимация появления
-        WatermarkFrame.Position = UDim2.new(0.8, 0, -0.1, 0)
-        game:GetService("TweenService"):Create(WatermarkFrame, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Position = UDim2.new(0.75, 0, 0.02, 0)}):Play()
     end
     
-    -- Создаем основной GUI
+    -- Основной GUI
     local ScreenGui = Instance.new("ScreenGui")
     local MainFrame = Instance.new("Frame")
     local UICorner = Instance.new("UICorner")
     local TopBar = Instance.new("Frame")
     local Title = Instance.new("TextLabel")
     local CloseButton = Instance.new("TextButton")
+    local TabsContainer = Instance.new("Frame")
+    local TabButtons = Instance.new("Frame")
+    local ContentContainer = Instance.new("Frame")
 
     ScreenGui.Name = config.Name .. "GUI"
     ScreenGui.Parent = game.CoreGui
     ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-    ScreenGui.ResetOnSpawn = false
 
-    -- Главный фрейм
     MainFrame.Name = "MainFrame"
     MainFrame.Parent = ScreenGui
     MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
@@ -175,44 +121,41 @@ function FurstyHub:CreateGUI(config)
     UICorner.CornerRadius = UDim.new(0, 12)
     UICorner.Parent = MainFrame
 
-    -- Верхняя панель
     TopBar.Name = "TopBar"
     TopBar.Parent = MainFrame
     TopBar.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
-    TopBar.BorderSizePixel = 0
     TopBar.Size = UDim2.new(1, 0, 0, 40)
 
     local TopBarCorner = Instance.new("UICorner")
     TopBarCorner.CornerRadius = UDim.new(0, 12)
     TopBarCorner.Parent = TopBar
 
+    -- Иконка F (исправленная позиция)
+    local FIcon = Instance.new("TextLabel")
+    FIcon.Name = "FIcon"
+    FIcon.Parent = TopBar
+    FIcon.BackgroundTransparency = 1
+    FIcon.Position = UDim2.new(0, 15, 0.5, -10)
+    FIcon.Size = UDim2.new(0, 20, 0, 20)
+    FIcon.Font = Enum.Font.GothamBlack
+    FIcon.Text = "F"
+    FIcon.TextColor3 = Color3.fromRGB(255, 50, 50)
+    FIcon.TextSize = 20
+    FIcon.TextXAlignment = Enum.TextXAlignment.Center
+    FIcon.TextYAlignment = Enum.TextYAlignment.Center
+
     -- Заголовок
     Title.Name = "Title"
     Title.Parent = TopBar
-    Title.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
     Title.BackgroundTransparency = 1.0
-    Title.Position = UDim2.new(0, 15, 0, 0)
+    Title.Position = UDim2.new(0, 40, 0, 0)
     Title.Size = UDim2.new(0, 200, 1, 0)
     Title.Font = Enum.Font.GothamBold
-    Title.Text = "      " .. config.Name .. "  |  " .. config.Version
+    Title.Text = config.Name .. "  |  " .. config.Version
     Title.TextColor3 = Color3.fromRGB(255, 50, 50)
     Title.TextSize = 16
     Title.TextXAlignment = Enum.TextXAlignment.Left
 
-    -- Иконка F
-    local FIcon = Instance.new("TextLabel")
-    FIcon.Name = "FIcon"
-    FIcon.Parent = Title
-    FIcon.BackgroundTransparency = 1
-    FIcon.Position = UDim2.new(0, -20, 0, 0)
-    FIcon.Size = UDim2.new(0, 20, 1, 0)
-    FIcon.Font = Enum.Font.GothamBlack
-    FIcon.Text = ""
-    FIcon.TextColor3 = Color3.fromRGB(255, 50, 50)
-    FIcon.TextSize = 10
-    FIcon.TextXAlignment = Enum.TextXAlignment.Center
-
-    -- Кнопка закрытия
     CloseButton.Name = "CloseButton"
     CloseButton.Parent = TopBar
     CloseButton.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
@@ -232,19 +175,12 @@ function FurstyHub:CreateGUI(config)
         getgenv().FurstyHubLoaded = false
     end)
 
-    -- Контейнер вкладок
-    local TabsContainer = Instance.new("Frame")
-    local TabButtons = Instance.new("Frame")
-    local ContentContainer = Instance.new("Frame")
-
     TabsContainer.Name = "TabsContainer"
     TabsContainer.Parent = MainFrame
-    TabsContainer.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
     TabsContainer.BackgroundTransparency = 1.0
     TabsContainer.Position = UDim2.new(0, 0, 0, 40)
     TabsContainer.Size = UDim2.new(1, 0, 1, -40)
 
-    -- Кнопки вкладок
     TabButtons.Name = "TabButtons"
     TabButtons.Parent = TabsContainer
     TabButtons.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
@@ -260,21 +196,16 @@ function FurstyHub:CreateGUI(config)
     TabButtonsLayout.SortOrder = Enum.SortOrder.LayoutOrder
     TabButtonsLayout.Padding = UDim.new(0, 5)
 
-    -- Контейнер контента
     ContentContainer.Name = "ContentContainer"
     ContentContainer.Parent = TabsContainer
-    ContentContainer.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
     ContentContainer.BackgroundTransparency = 1.0
     ContentContainer.Position = UDim2.new(0, 125, 0, 10)
     ContentContainer.Size = UDim2.new(0, 365, 0, 340)
 
-    -- ПРОСТАЯ СИСТЕМА ВКЛАДОК
     local Tabs = {}
     local CurrentTab = nil
 
-    -- Функция переключения вкладок
     local function SwitchToTab(tabName)
-        -- Скрываем все вкладки
         for name, tab in pairs(Tabs) do
             if tab.Content then
                 tab.Content.Visible = false
@@ -284,7 +215,6 @@ function FurstyHub:CreateGUI(config)
             end
         end
         
-        -- Показываем выбранную вкладку
         if Tabs[tabName] then
             if Tabs[tabName].Content then
                 Tabs[tabName].Content.Visible = true
@@ -296,7 +226,6 @@ function FurstyHub:CreateGUI(config)
         end
     end
 
-    -- Функция создания кнопки
     function GUI:CreateButton(parent, text, callback)
         local Button = Instance.new("TextButton")
         local UICorner = Instance.new("UICorner")
@@ -322,7 +251,6 @@ function FurstyHub:CreateGUI(config)
         return Button
     end
 
-    -- Функция создания тоггла
     function GUI:CreateToggle(parent, text, default, callback)
         local ToggleFrame = Instance.new("Frame")
         local ToggleButton = Instance.new("TextButton")
@@ -386,7 +314,6 @@ function FurstyHub:CreateGUI(config)
         return ToggleFrame
     end
 
-    -- Функция создания слайдера
     function GUI:CreateSlider(parent, text, min, max, default, callback)
         local SliderFrame = Instance.new("Frame")
         local SliderLabel = Instance.new("TextLabel")
@@ -480,7 +407,6 @@ function FurstyHub:CreateGUI(config)
         return SliderFrame
     end
 
-    -- Функция создания выпадающего списка
     function GUI:CreateDropdown(parent, text, options, default, callback)
         local DropdownFrame = Instance.new("Frame")
         local DropdownLabel = Instance.new("TextLabel")
@@ -528,11 +454,9 @@ function FurstyHub:CreateGUI(config)
         return DropdownFrame
     end
 
-    -- Функция создания вкладки - МАКСИМАЛЬНО ПРОСТАЯ
     function GUI:CreateTab(name)
         local Tab = {}
         
-        -- Создаем кнопку вкладки
         local TabButton = Instance.new("TextButton")
         TabButton.Name = name .. "Tab"
         TabButton.Parent = TabButtons
@@ -547,7 +471,6 @@ function FurstyHub:CreateGUI(config)
         TabCorner.CornerRadius = UDim.new(0, 6)
         TabCorner.Parent = TabButton
         
-        -- Создаем контент вкладки
         local TabContent = Instance.new("ScrollingFrame")
         TabContent.Name = name .. "Content"
         TabContent.Parent = ContentContainer
@@ -563,17 +486,14 @@ function FurstyHub:CreateGUI(config)
         UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
         UIListLayout.Padding = UDim.new(0, 8)
         
-        -- Обработчик клика по кнопке вкладки
         TabButton.MouseButton1Click:Connect(function()
             SwitchToTab(name)
         end)
         
-        -- Сохраняем вкладку
         Tab.Button = TabButton
         Tab.Content = TabContent
         Tab.Name = name
         
-        -- Методы вкладки
         function Tab:AddButton(text, callback)
             return GUI:CreateButton(TabContent, text, callback)
         end
@@ -594,10 +514,8 @@ function FurstyHub:CreateGUI(config)
             SwitchToTab(name)
         end
         
-        -- Добавляем вкладку в таблицу
         Tabs[name] = Tab
         
-        -- Если это первая вкладка, показываем её
         if not CurrentTab then
             SwitchToTab(name)
         end
@@ -605,7 +523,6 @@ function FurstyHub:CreateGUI(config)
         return Tab
     end
 
-    -- Функции GUI
     function GUI:ShowTab(tabName)
         if Tabs[tabName] then
             SwitchToTab(tabName)
@@ -632,7 +549,6 @@ function FurstyHub:CreateGUI(config)
         end
     end
 
-    -- Создаем watermark при запуске
     spawn(function()
         wait(1)
         UpdateWatermark()
