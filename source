@@ -29,7 +29,6 @@ function FurstyHub:CreateGUI(config)
     
     -- Watermark система
     local WatermarkEnabled = config.WatermarkEnabled
-    local WatermarkGui = nil
     
     local function UpdateWatermark()
         if not WatermarkEnabled then return end
@@ -39,10 +38,9 @@ function FurstyHub:CreateGUI(config)
             game:GetService("CoreGui")[config.Name .. "Watermark"]:Destroy()
         end
         
-        WatermarkGui = Instance.new("ScreenGui")
+        local WatermarkGui = Instance.new("ScreenGui")
         local WatermarkFrame = Instance.new("Frame")
         local UICorner = Instance.new("UICorner")
-        local Stroke = Instance.new("UIStroke")
         local FIcon = Instance.new("TextLabel")
         local TextLabel = Instance.new("TextLabel")
         local PingLabel = Instance.new("TextLabel")
@@ -54,20 +52,15 @@ function FurstyHub:CreateGUI(config)
         WatermarkFrame.Name = "WatermarkFrame"
         WatermarkFrame.Parent = WatermarkGui
         WatermarkFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 20)
+        WatermarkFrame.BorderColor3 = Color3.fromRGB(255, 50, 50)
+        WatermarkFrame.BorderSizePixel = 1
         WatermarkFrame.Position = UDim2.new(0.75, 0, 0.02, 0)
         WatermarkFrame.Size = UDim2.new(0, 200, 0, 40)
         
         UICorner.CornerRadius = UDim.new(0, 8)
         UICorner.Parent = WatermarkFrame
         
-        -- Анимированная обводка
-        Stroke.Parent = WatermarkFrame
-        Stroke.Color = Color3.fromRGB(255, 50, 50)
-        Stroke.Thickness = 2
-        Stroke.Transparency = 0.3
-        Stroke.LineJoinMode = Enum.LineJoinMode.Round
-        
-        -- Иконка F
+        -- Иконка F с градиентом
         FIcon.Name = "FIcon"
         FIcon.Parent = WatermarkFrame
         FIcon.BackgroundTransparency = 1
@@ -101,41 +94,6 @@ function FurstyHub:CreateGUI(config)
         PingLabel.TextSize = 10
         PingLabel.TextXAlignment = Enum.TextXAlignment.Left
         
-        -- Анимация обводки
-        spawn(function()
-            while WatermarkEnabled and WatermarkGui and WatermarkGui.Parent do
-                -- Пульсирующая анимация
-                for i = 1, 10 do
-                    if not WatermarkGui or not WatermarkGui.Parent then break end
-                    local alpha = 0.3 + (i * 0.07)
-                    Stroke.Transparency = 1 - alpha
-                    wait(0.05)
-                end
-                for i = 1, 10 do
-                    if not WatermarkGui or not WatermarkGui.Parent then break end
-                    local alpha = 1.0 - (i * 0.07)
-                    Stroke.Transparency = 1 - alpha
-                    wait(0.05)
-                end
-                
-                -- Смена цвета обводки
-                local colors = {
-                    Color3.fromRGB(255, 50, 50),   -- Красный
-                    Color3.fromRGB(255, 100, 50),  -- Оранжевый
-                    Color3.fromRGB(255, 200, 50),  -- Желтый
-                    Color3.fromRGB(50, 255, 100),  -- Зеленый
-                    Color3.fromRGB(50, 150, 255),  -- Синий
-                    Color3.fromRGB(150, 50, 255)   -- Фиолетовый
-                }
-                
-                for _, color in ipairs(colors) do
-                    if not WatermarkGui or not WatermarkGui.Parent then break end
-                    game:GetService("TweenService"):Create(Stroke, TweenInfo.new(1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Color = color}):Play()
-                    wait(2)
-                end
-            end
-        end)
-        
         -- Обновление пинга
         spawn(function()
             while WatermarkEnabled and WatermarkGui and WatermarkGui.Parent do
@@ -145,10 +103,6 @@ function FurstyHub:CreateGUI(config)
                 end
             end
         end)
-        
-        -- Анимация появления
-        WatermarkFrame.Position = UDim2.new(0.8, 0, -0.1, 0)
-        game:GetService("TweenService"):Create(WatermarkFrame, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Position = UDim2.new(0.75, 0, 0.02, 0)}):Play()
     end
     
     -- Создаем основной GUI
@@ -312,7 +266,7 @@ function FurstyHub:CreateGUI(config)
     ContentContainer.Position = UDim2.new(0, 145, 0, 15)
     ContentContainer.Size = UDim2.new(0, 390, 0, 380)
 
-    -- Табы системы - ПРОСТАЯ И НАДЕЖНАЯ РЕАЛИЗАЦИЯ
+    -- Табы системы
     local Tabs = {}
     local CurrentTab = nil
 
@@ -320,9 +274,10 @@ function FurstyHub:CreateGUI(config)
     function GUI:CreateButton(parent, text, callback)
         local Button = Instance.new("TextButton")
         local UICorner = Instance.new("UICorner")
+        local ButtonGradient = Instance.new("UIGradient")
         
         Button.Parent = parent
-        Button.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+        Button.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
         Button.Size = UDim2.new(0.95, 0, 0, 45)
         Button.Font = Enum.Font.GothamSemibold
         Button.Text = text
@@ -330,20 +285,31 @@ function FurstyHub:CreateGUI(config)
         Button.TextSize = 14
         Button.AutoButtonColor = false
         
+        -- Градиент кнопки
+        ButtonGradient.Color = ColorSequence.new({
+            ColorSequenceKeypoint.new(0.00, Color3.fromRGB(50, 50, 60)),
+            ColorSequenceKeypoint.new(1.00, Color3.fromRGB(60, 60, 70))
+        })
+        ButtonGradient.Parent = Button
+        
         UICorner.CornerRadius = UDim.new(0, 10)
         UICorner.Parent = Button
         
         -- Анимации кнопки
         Button.MouseEnter:Connect(function()
-            game:GetService("TweenService"):Create(Button, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(60, 60, 70)}):Play()
+            game:GetService("TweenService"):Create(Button, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(255, 60, 60)}):Play()
         end)
         
         Button.MouseLeave:Connect(function()
-            game:GetService("TweenService"):Create(Button, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(50, 50, 60)}):Play()
+            game:GetService("TweenService"):Create(Button, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(40, 40, 50)}):Play()
         end)
         
         Button.MouseButton1Click:Connect(function()
             if callback then
+                -- Анимация нажатия
+                game:GetService("TweenService"):Create(Button, TweenInfo.new(0.1), {BackgroundColor3 = Color3.fromRGB(255, 80, 80)}):Play()
+                wait(0.1)
+                game:GetService("TweenService"):Create(Button, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(40, 40, 50)}):Play()
                 callback()
             end
         end)
@@ -395,11 +361,11 @@ function FurstyHub:CreateGUI(config)
         
         local function updateToggle()
             if state then
-                ToggleButton.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
-                ToggleCircle.Position = UDim2.new(0.55, 0, 0.1, 0)
+                game:GetService("TweenService"):Create(ToggleButton, TweenInfo.new(0.3), {BackgroundColor3 = Color3.fromRGB(255, 50, 50)}):Play()
+                game:GetService("TweenService"):Create(ToggleCircle, TweenInfo.new(0.3), {Position = UDim2.new(0.55, 0, 0.1, 0)}):Play()
             else
-                ToggleButton.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
-                ToggleCircle.Position = UDim2.new(0.05, 0, 0.1, 0)
+                game:GetService("TweenService"):Create(ToggleButton, TweenInfo.new(0.3), {BackgroundColor3 = Color3.fromRGB(60, 60, 70)}):Play()
+                game:GetService("TweenService"):Create(ToggleCircle, TweenInfo.new(0.3), {Position = UDim2.new(0.05, 0, 0.1, 0)}):Play()
             end
             if callback then
                 callback(state)
@@ -566,7 +532,7 @@ function FurstyHub:CreateGUI(config)
         return DropdownFrame
     end
 
-    -- Функция создания вкладки - УПРОЩЕННАЯ И РАБОЧАЯ
+    -- Функция создания вкладки
     function GUI:CreateTab(name)
         local Tab = {}
         
@@ -590,6 +556,19 @@ function FurstyHub:CreateGUI(config)
         TabCorner.CornerRadius = UDim.new(0, 8)
         TabCorner.Parent = TabButton
         
+        -- Анимация кнопки вкладки
+        TabButton.MouseEnter:Connect(function()
+            if TabButton.BackgroundColor3 ~= Color3.fromRGB(255, 50, 50) then
+                game:GetService("TweenService"):Create(TabButton, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(50, 50, 60)}):Play()
+            end
+        end)
+        
+        TabButton.MouseLeave:Connect(function()
+            if TabButton.BackgroundColor3 ~= Color3.fromRGB(255, 50, 50) then
+                game:GetService("TweenService"):Create(TabButton, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(35, 35, 45)}):Play()
+            end
+        end)
+        
         -- Контент вкладки
         TabContent.Name = name .. "Content"
         TabContent.Parent = ContentContainer
@@ -607,31 +586,27 @@ function FurstyHub:CreateGUI(config)
         UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
         UIListLayout.Padding = UDim.new(0, 10)
         
-        -- Простая функция показа/скрытия
-        local function ShowTab()
-            -- Скрываем все вкладки
-            for _, tab in pairs(Tabs) do
-                if tab.Content then
-                    tab.Content.Visible = false
+        -- Функции таба
+        function Tab:Show()
+            -- Скрываем все табы
+            for _, otherTab in pairs(Tabs) do
+                if otherTab.Content then
+                    otherTab.Content.Visible = false
                 end
-                if tab.Button then
-                    tab.Button.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
+                if otherTab.Button then
+                    game:GetService("TweenService"):Create(otherTab.Button, TweenInfo.new(0.3), {BackgroundColor3 = Color3.fromRGB(35, 35, 45)}):Play()
                 end
             end
             
-            -- Показываем текущую вкладку
-            TabContent.Visible = true
-            TabButton.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+            -- Показываем этот таб
+            if TabContent then
+                TabContent.Visible = true
+            end
+            if TabButton then
+                game:GetService("TweenService"):Create(TabButton, TweenInfo.new(0.3), {BackgroundColor3 = Color3.fromRGB(255, 50, 50)}):Play()
+            end
             
             CurrentTab = Tab
-        end
-        
-        -- Обработчик клика
-        TabButton.MouseButton1Click:Connect(ShowTab)
-        
-        -- Методы таба
-        function Tab:Show()
-            ShowTab()
         end
         
         function Tab:AddButton(text, callback)
@@ -650,6 +625,11 @@ function FurstyHub:CreateGUI(config)
             return GUI:CreateDropdown(TabContent, text, options, default, callback)
         end
         
+        -- Обработчик клика
+        TabButton.MouseButton1Click:Connect(function()
+            Tab:Show()
+        end)
+        
         -- Сохраняем ссылки
         Tab.Button = TabButton
         Tab.Content = TabContent
@@ -660,7 +640,7 @@ function FurstyHub:CreateGUI(config)
         
         -- Если это первый таб, показываем его
         if not CurrentTab then
-            ShowTab()
+            Tab:Show()
         end
         
         return Tab
