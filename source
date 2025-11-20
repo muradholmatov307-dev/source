@@ -1,478 +1,78 @@
--- FurstyHub Core Library
-local FurstyHub = {}
+-- Загрузка библиотеки
+local FurstyHub = loadstring(game:HttpGet("https://raw.githubusercontent.com/your-repo/FurstyHub/main/source.lua"))()
 
--- Защита от копирования
-if getgenv().FurstyHubLoaded then
-    return
+-- Конфигурация GUI
+local MyGUI = FurstyHub:CreateGUI({
+    Name = "MyAwesomeHub",      -- Название вашего хаба
+    Version = "v2.1",           -- Версия
+    Discord = "dsc.gg/myserver", -- Ваш дискорд
+    WatermarkEnabled = true     -- Включить watermark?
+})
+
+-- Создаем вкладки (теперь с улучшенной системой)
+local CombatTab = MyGUI:CreateTab("Combat")
+local VisualsTab = MyGUI:CreateTab("Visuals") 
+local MovementTab = MyGUI:CreateTab("Movement")
+local SettingsTab = MyGUI:CreateTab("Settings")
+
+-- Добавляем элементы на вкладку Combat (новый синтаксис)
+CombatTab:AddButton("Kill All", function()
+    print("Kill All активирован!")
+    -- Ваш код здесь
+end)
+
+CombatTab:AddToggle("Aimbot", false, function(state)
+    print("Aimbot:", state)
+    -- Ваш код здесь
+end)
+
+CombatTab:AddSlider("Aimbot FOV", 1, 360, 90, function(value)
+    print("FOV установлен:", value)
+    -- Ваш код здесь
+end)
+
+-- Добавляем элементы на вкладку Visuals
+VisualsTab:AddToggle("ESP", true, function(state)
+    print("ESP:", state)
+    -- Ваш код здесь
+end)
+
+VisualsTab:AddDropdown("ESP Type", {"Box", "Tracer", "Skeleton"}, "Box", function(option)
+    print("Выбран ESP тип:", option)
+    -- Ваш код здесь
+end)
+
+-- Добавляем элементы на вкладку Movement
+MovementTab:AddButton("Fly Hack", function()
+    print("Fly активирован!")
+    -- Ваш код здесь
+end)
+
+MovementTab:AddSlider("Speed", 1, 200, 50, function(value)
+    print("Speed установлен:", value)
+    -- Ваш код здесь
+end)
+
+-- Добавляем элементы на вкладку Settings
+SettingsTab:AddButton("Destroy GUI", function()
+    MyGUI:Destroy()
+end)
+
+SettingsTab:AddToggle("Watermark", true, function(state)
+    MyGUI:SetWatermarkEnabled(state)
+end)
+
+SettingsTab:AddButton("Copy Discord", function()
+    setclipboard("dsc.gg/myserver")
+    print("Discord скопирован!")
+end)
+
+-- Можно переключать вкладки программно
+wait(5)
+MyGUI:ShowTab("Visuals") -- Переключиться на вкладку Visuals через 5 секунд
+
+-- Получить доступ к конкретной вкладке
+local combat = MyGUI:GetTab("Combat")
+if combat then
+    print("Combat tab доступен!")
 end
-getgenv().FurstyHubLoaded = true
-
-function FurstyHub:CreateGUI(config)
-    local GUI = {}
-    
-    -- Конфигурация по умолчанию
-    config = config or {}
-    config.Name = config.Name or "FurstyHub"
-    config.Version = config.Version or "1.0"
-    config.Discord = config.Discord or "dsc.gg/furstyhub"
-    config.WatermarkEnabled = config.WatermarkEnabled == nil and true or config.WatermarkEnabled
-    
-    -- Основной GUI
-    local ScreenGui = Instance.new("ScreenGui")
-    local MainFrame = Instance.new("Frame")
-    local UICorner = Instance.new("UICorner")
-    local TopBar = Instance.new("Frame")
-    local Title = Instance.new("TextLabel")
-    local CloseButton = Instance.new("TextButton")
-    local TabsContainer = Instance.new("Frame")
-    local TabButtons = Instance.new("Frame")
-    local ContentContainer = Instance.new("Frame")
-
-    ScreenGui.Name = config.Name .. "GUI"
-    ScreenGui.Parent = game.CoreGui
-    ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-    ScreenGui.ResetOnSpawn = false
-
-    -- Главный фрейм
-    MainFrame.Name = "MainFrame"
-    MainFrame.Parent = ScreenGui
-    MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
-    MainFrame.Position = UDim2.new(0.3, 0, 0.2, 0)
-    MainFrame.Size = UDim2.new(0, 500, 0, 400)
-    MainFrame.Active = true
-    MainFrame.Draggable = true
-
-    UICorner.CornerRadius = UDim.new(0, 12)
-    UICorner.Parent = MainFrame
-
-    -- Верхняя панель
-    TopBar.Name = "TopBar"
-    TopBar.Parent = MainFrame
-    TopBar.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
-    TopBar.BorderSizePixel = 0
-    TopBar.Size = UDim2.new(1, 0, 0, 40)
-
-    local TopBarCorner = Instance.new("UICorner")
-    TopBarCorner.CornerRadius = UDim.new(0, 12)
-    TopBarCorner.Parent = TopBar
-
-    -- Заголовок
-    Title.Name = "Title"
-    Title.Parent = TopBar
-    Title.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    Title.BackgroundTransparency = 1.0
-    Title.Position = UDim2.new(0, 15, 0, 0)
-    Title.Size = UDim2.new(0, 200, 1, 0)
-    Title.Font = Enum.Font.GothamBold
-    Title.Text = "      " .. config.Name .. "  |  " .. config.Version
-    Title.TextColor3 = Color3.fromRGB(255, 50, 50)
-    Title.TextSize = 16
-    Title.TextXAlignment = Enum.TextXAlignment.Left
-
-    -- Иконка F
-    local FIcon = Instance.new("TextLabel")
-    FIcon.Name = "FIcon"
-    FIcon.Parent = Title
-    FIcon.BackgroundTransparency = 1
-    FIcon.Position = UDim2.new(0, -25, 0, 0)
-    FIcon.Size = UDim2.new(0, 20, 1, 0)
-    FIcon.Font = Enum.Font.GothamBlack
-    FIcon.Text = "F"
-    FIcon.TextColor3 = Color3.fromRGB(255, 50, 50)
-    FIcon.TextSize = 20
-    FIcon.TextXAlignment = Enum.TextXAlignment.Center
-
-    -- Кнопка закрытия
-    CloseButton.Name = "CloseButton"
-    CloseButton.Parent = TopBar
-    CloseButton.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
-    CloseButton.Position = UDim2.new(1, -35, 0.5, -10)
-    CloseButton.Size = UDim2.new(0, 20, 0, 20)
-    CloseButton.Font = Enum.Font.GothamBold
-    CloseButton.Text = "X"
-    CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-    CloseButton.TextSize = 12
-
-    local CloseCorner = Instance.new("UICorner")
-    CloseCorner.CornerRadius = UDim.new(1, 0)
-    CloseCorner.Parent = CloseButton
-
-    CloseButton.MouseButton1Click:Connect(function()
-        ScreenGui:Destroy()
-        getgenv().FurstyHubLoaded = false
-    end)
-
-    -- Контейнер вкладок
-    TabsContainer.Name = "TabsContainer"
-    TabsContainer.Parent = MainFrame
-    TabsContainer.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    TabsContainer.BackgroundTransparency = 1.0
-    TabsContainer.Position = UDim2.new(0, 0, 0, 40)
-    TabsContainer.Size = UDim2.new(1, 0, 1, -40)
-
-    -- Кнопки вкладок
-    TabButtons.Name = "TabButtons"
-    TabButtons.Parent = TabsContainer
-    TabButtons.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
-    TabButtons.Size = UDim2.new(0, 120, 1, 0)
-
-    local TabButtonsCorner = Instance.new("UICorner")
-    TabButtonsCorner.CornerRadius = UDim.new(0, 12)
-    TabButtonsCorner.Parent = TabButtons
-
-    -- Контейнер контента
-    ContentContainer.Name = "ContentContainer"
-    ContentContainer.Parent = TabsContainer
-    ContentContainer.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    ContentContainer.BackgroundTransparency = 1.0
-    ContentContainer.Position = UDim2.new(0, 125, 0, 10)
-    ContentContainer.Size = UDim2.new(0, 365, 0, 340)
-
-    -- Функции для создания элементов
-    function GUI:CreateTab(name)
-        local TabButton = Instance.new("TextButton")
-        local TabContent = Instance.new("ScrollingFrame")
-        local UIListLayout = Instance.new("UIListLayout")
-        
-        -- Кнопка вкладки
-        TabButton.Name = name .. "Tab"
-        TabButton.Parent = TabButtons
-        TabButton.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
-        TabButton.BorderSizePixel = 0
-        TabButton.Size = UDim2.new(0.9, 0, 0, 35)
-        TabButton.Font = Enum.Font.Gotham
-        TabButton.Text = name
-        TabButton.TextColor3 = Color3.fromRGB(200, 200, 200)
-        TabButton.TextSize = 14
-        
-        local TabCorner = Instance.new("UICorner")
-        TabCorner.CornerRadius = UDim.new(0, 6)
-        TabCorner.Parent = TabButton
-        
-        -- Контент вкладки
-        TabContent.Name = name .. "Content"
-        TabContent.Parent = ContentContainer
-        TabContent.Active = true
-        TabContent.BackgroundTransparency = 1
-        TabContent.BorderSizePixel = 0
-        TabContent.Size = UDim2.new(1, 0, 1, 0)
-        TabContent.CanvasSize = UDim2.new(0, 0, 0, 0)
-        TabContent.ScrollBarThickness = 4
-        TabContent.Visible = false
-        
-        UIListLayout.Parent = TabContent
-        UIListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-        UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
-        UIListLayout.Padding = UDim.new(0, 8)
-        
-        TabButton.MouseButton1Click:Connect(function()
-            for _, child in pairs(ContentContainer:GetChildren()) do
-                if child:IsA("ScrollingFrame") then
-                    child.Visible = false
-                end
-            end
-            TabContent.Visible = true
-            
-            -- Обновляем цвета кнопок
-            for _, btn in pairs(TabButtons:GetChildren()) do
-                if btn:IsA("TextButton") then
-                    btn.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
-                end
-            end
-            TabButton.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
-        end)
-        
-        return TabContent
-    end
-
-    function GUI:CreateButton(parent, text, callback)
-        local Button = Instance.new("TextButton")
-        local UICorner = Instance.new("UICorner")
-        
-        Button.Parent = parent
-        Button.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
-        Button.Size = UDim2.new(0.95, 0, 0, 40)
-        Button.Font = Enum.Font.Gotham
-        Button.Text = text
-        Button.TextColor3 = Color3.fromRGB(255, 255, 255)
-        Button.TextSize = 14
-        Button.AutoButtonColor = false
-        
-        UICorner.CornerRadius = UDim.new(0, 8)
-        UICorner.Parent = Button
-        
-        Button.MouseEnter:Connect(function()
-            game:GetService("TweenService"):Create(Button, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(60, 60, 70)}):Play()
-        end)
-        
-        Button.MouseLeave:Connect(function()
-            game:GetService("TweenService"):Create(Button, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(50, 50, 60)}):Play()
-        end)
-        
-        Button.MouseButton1Click:Connect(function()
-            callback()
-            game:GetService("TweenService"):Create(Button, TweenInfo.new(0.1), {BackgroundColor3 = Color3.fromRGB(255, 50, 50)}):Play()
-            wait(0.1)
-            game:GetService("TweenService"):Create(Button, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(50, 50, 60)}):Play()
-        end)
-        
-        return Button
-    end
-
-    function GUI:CreateToggle(parent, text, default, callback)
-        local ToggleFrame = Instance.new("Frame")
-        local ToggleButton = Instance.new("TextButton")
-        local ToggleLabel = Instance.new("TextLabel")
-        local ToggleCircle = Instance.new("Frame")
-        
-        ToggleFrame.Parent = parent
-        ToggleFrame.BackgroundTransparency = 1
-        ToggleFrame.Size = UDim2.new(0.95, 0, 0, 30)
-        
-        ToggleLabel.Parent = ToggleFrame
-        ToggleLabel.BackgroundTransparency = 1
-        ToggleLabel.Size = UDim2.new(0.7, 0, 1, 0)
-        ToggleLabel.Font = Enum.Font.Gotham
-        ToggleLabel.Text = text
-        ToggleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-        ToggleLabel.TextSize = 14
-        ToggleLabel.TextXAlignment = Enum.TextXAlignment.Left
-        
-        ToggleButton.Parent = ToggleFrame
-        ToggleButton.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
-        ToggleButton.Position = UDim2.new(0.8, 0, 0.2, 0)
-        ToggleButton.Size = UDim2.new(0, 40, 0, 20)
-        ToggleButton.AutoButtonColor = false
-        ToggleButton.Text = ""
-        
-        local ToggleCorner = Instance.new("UICorner")
-        ToggleCorner.CornerRadius = UDim.new(1, 0)
-        ToggleCorner.Parent = ToggleButton
-        
-        ToggleCircle.Parent = ToggleButton
-        ToggleCircle.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-        ToggleCircle.Position = UDim2.new(0.1, 0, 0.1, 0)
-        ToggleCircle.Size = UDim2.new(0, 16, 0, 16)
-        
-        local CircleCorner = Instance.new("UICorner")
-        CircleCorner.CornerRadius = UDim.new(1, 0)
-        CircleCorner.Parent = ToggleCircle
-        
-        local state = default or false
-        
-        local function updateToggle()
-            if state then
-                game:GetService("TweenService"):Create(ToggleButton, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(255, 50, 50)}):Play()
-                game:GetService("TweenService"):Create(ToggleCircle, TweenInfo.new(0.2), {Position = UDim2.new(0.5, 0, 0.1, 0)}):Play()
-            else
-                game:GetService("TweenService"):Create(ToggleButton, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(60, 60, 70)}):Play()
-                game:GetService("TweenService"):Create(ToggleCircle, TweenInfo.new(0.2), {Position = UDim2.new(0.1, 0, 0.1, 0)}):Play()
-            end
-            callback(state)
-        end
-        
-        ToggleButton.MouseButton1Click:Connect(function()
-            state = not state
-            updateToggle()
-        end)
-        
-        updateToggle()
-        return ToggleFrame
-    end
-
-    function GUI:CreateSlider(parent, text, min, max, default, callback)
-        local SliderFrame = Instance.new("Frame")
-        local SliderLabel = Instance.new("TextLabel")
-        local SliderBar = Instance.new("Frame")
-        local SliderFill = Instance.new("Frame")
-        local SliderButton = Instance.new("TextButton")
-        local ValueLabel = Instance.new("TextLabel")
-        
-        SliderFrame.Parent = parent
-        SliderFrame.BackgroundTransparency = 1
-        SliderFrame.Size = UDim2.new(0.95, 0, 0, 50)
-        
-        SliderLabel.Parent = SliderFrame
-        SliderLabel.BackgroundTransparency = 1
-        SliderLabel.Size = UDim2.new(0.7, 0, 0, 20)
-        SliderLabel.Font = Enum.Font.Gotham
-        SliderLabel.Text = text
-        SliderLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-        SliderLabel.TextSize = 14
-        SliderLabel.TextXAlignment = Enum.TextXAlignment.Left
-        
-        ValueLabel.Parent = SliderFrame
-        ValueLabel.BackgroundTransparency = 1
-        ValueLabel.Position = UDim2.new(0.7, 0, 0, 0)
-        ValueLabel.Size = UDim2.new(0.3, 0, 0, 20)
-        ValueLabel.Font = Enum.Font.Gotham
-        ValueLabel.Text = tostring(default or min)
-        ValueLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-        ValueLabel.TextSize = 14
-        ValueLabel.TextXAlignment = Enum.TextXAlignment.Right
-        
-        SliderBar.Parent = SliderFrame
-        SliderBar.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
-        SliderBar.Position = UDim2.new(0, 0, 0.6, 0)
-        SliderBar.Size = UDim2.new(1, 0, 0, 6)
-        
-        local BarCorner = Instance.new("UICorner")
-        BarCorner.CornerRadius = UDim.new(1, 0)
-        BarCorner.Parent = SliderBar
-        
-        SliderFill.Parent = SliderBar
-        SliderFill.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
-        SliderFill.Size = UDim2.new((default or min) / max, 0, 1, 0)
-        
-        local FillCorner = Instance.new("UICorner")
-        FillCorner.CornerRadius = UDim.new(1, 0)
-        FillCorner.Parent = SliderFill
-        
-        SliderButton.Parent = SliderBar
-        SliderButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-        SliderButton.Position = UDim2.new((default or min) / max, -8, -0.5, 0)
-        SliderButton.Size = UDim2.new(0, 16, 0, 16)
-        SliderButton.Text = ""
-        SliderButton.ZIndex = 2
-        
-        local ButtonCorner = Instance.new("UICorner")
-        ButtonCorner.CornerRadius = UDim.new(1, 0)
-        ButtonCorner.Parent = SliderButton
-        
-        local dragging = false
-        
-        local function updateSlider(value)
-            local percent = math.clamp(value, min, max) / max
-            SliderFill.Size = UDim2.new(percent, 0, 1, 0)
-            SliderButton.Position = UDim2.new(percent, -8, -0.5, 0)
-            ValueLabel.Text = tostring(math.floor(value))
-            callback(value)
-        end
-        
-        SliderButton.MouseButton1Down:Connect(function()
-            dragging = true
-        end)
-        
-        game:GetService("UserInputService").InputEnded:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                dragging = false
-            end
-        end)
-        
-        game:GetService("UserInputService").InputChanged:Connect(function(input)
-            if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-                local percent = math.clamp((input.Position.X - SliderBar.AbsolutePosition.X) / SliderBar.AbsoluteSize.X, 0, 1)
-                local value = math.floor(min + (max - min) * percent)
-                updateSlider(value)
-            end
-        end)
-        
-        updateSlider(default or min)
-        return SliderFrame
-    end
-
-    function GUI:CreateDropdown(parent, text, options, default, callback)
-        local DropdownFrame = Instance.new("Frame")
-        local DropdownLabel = Instance.new("TextLabel")
-        local DropdownButton = Instance.new("TextButton")
-        local DropdownList = Instance.new("ScrollingFrame")
-        local UIListLayout = Instance.new("UIListLayout")
-        
-        DropdownFrame.Parent = parent
-        DropdownFrame.BackgroundTransparency = 1
-        DropdownFrame.Size = UDim2.new(0.95, 0, 0, 60)
-        
-        DropdownLabel.Parent = DropdownFrame
-        DropdownLabel.BackgroundTransparency = 1
-        DropdownLabel.Size = UDim2.new(1, 0, 0, 20)
-        DropdownLabel.Font = Enum.Font.Gotham
-        DropdownLabel.Text = text
-        DropdownLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-        DropdownLabel.TextSize = 14
-        DropdownLabel.TextXAlignment = Enum.TextXAlignment.Left
-        
-        DropdownButton.Parent = DropdownFrame
-        DropdownButton.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
-        DropdownButton.Position = UDim2.new(0, 0, 0.5, 0)
-        DropdownButton.Size = UDim2.new(1, 0, 0, 30)
-        DropdownButton.Font = Enum.Font.Gotham
-        DropdownButton.Text = default or "Select..."
-        DropdownButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-        DropdownButton.TextSize = 14
-        DropdownButton.AutoButtonColor = false
-        
-        local ButtonCorner = Instance.new("UICorner")
-        ButtonCorner.CornerRadius = UDim.new(0, 6)
-        ButtonCorner.Parent = DropdownButton
-        
-        DropdownList.Parent = DropdownFrame
-        DropdownList.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
-        DropdownList.Position = UDim2.new(0, 0, 1, 5)
-        DropdownList.Size = UDim2.new(1, 0, 0, 0)
-        DropdownList.CanvasSize = UDim2.new(0, 0, 0, 0)
-        DropdownList.ScrollBarThickness = 4
-        DropdownList.Visible = false
-        
-        local ListCorner = Instance.new("UICorner")
-        ListCorner.CornerRadius = UDim.new(0, 6)
-        ListCorner.Parent = DropdownList
-        
-        UIListLayout.Parent = DropdownList
-        UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
-        
-        local open = false
-        
-        local function toggleList()
-            open = not open
-            if open then
-                DropdownList.Visible = true
-                DropdownList.Size = UDim2.new(1, 0, 0, math.min(#options * 30, 120))
-            else
-                DropdownList.Visible = false
-                DropdownList.Size = UDim2.new(1, 0, 0, 0)
-            end
-        end
-        
-        DropdownButton.MouseButton1Click:Connect(toggleList)
-        
-        for i, option in pairs(options) do
-            local OptionButton = Instance.new("TextButton")
-            OptionButton.Parent = DropdownList
-            OptionButton.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
-            OptionButton.Size = UDim2.new(1, 0, 0, 25)
-            OptionButton.Font = Enum.Font.Gotham
-            OptionButton.Text = option
-            OptionButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-            OptionButton.TextSize = 12
-            OptionButton.AutoButtonColor = false
-            
-            OptionButton.MouseEnter:Connect(function()
-                game:GetService("TweenService"):Create(OptionButton, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(60, 60, 70)}):Play()
-            end)
-            
-            OptionButton.MouseLeave:Connect(function()
-                game:GetService("TweenService"):Create(OptionButton, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(50, 50, 60)}):Play()
-            end)
-            
-            OptionButton.MouseButton1Click:Connect(function()
-                DropdownButton.Text = option
-                callback(option)
-                toggleList()
-            end)
-        end
-        
-        return DropdownFrame
-    end
-
-    function GUI:Destroy()
-        ScreenGui:Destroy()
-        getgenv().FurstyHubLoaded = false
-    end
-
-    -- Активируем первую вкладку при создании
-    GUI.FirstTab = nil
-
-    return GUI
-end
-
-return FurstyHub
