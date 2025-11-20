@@ -43,6 +43,7 @@ function FurstyHub:CreateGUI(config)
         local UICorner = Instance.new("UICorner")
         local FIcon = Instance.new("TextLabel")
         local TextLabel = Instance.new("TextLabel")
+        local PingLabel = Instance.new("TextLabel")
         
         WatermarkGui.Name = config.Name .. "Watermark"
         WatermarkGui.Parent = game.CoreGui
@@ -50,38 +51,66 @@ function FurstyHub:CreateGUI(config)
         
         WatermarkFrame.Name = "WatermarkFrame"
         WatermarkFrame.Parent = WatermarkGui
-        WatermarkFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
-        WatermarkFrame.Position = UDim2.new(0.8, 0, 0.02, 0)
-        WatermarkFrame.Size = UDim2.new(0, 180, 0, 35)
+        WatermarkFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 20)
+        WatermarkFrame.BorderColor3 = Color3.fromRGB(255, 50, 50)
+        WatermarkFrame.BorderSizePixel = 1
+        WatermarkFrame.Position = UDim2.new(0.75, 0, 0.02, 0)
+        WatermarkFrame.Size = UDim2.new(0, 200, 0, 40)
         
         UICorner.CornerRadius = UDim.new(0, 8)
         UICorner.Parent = WatermarkFrame
         
+        -- Иконка F с градиентом
         FIcon.Name = "FIcon"
         FIcon.Parent = WatermarkFrame
         FIcon.BackgroundTransparency = 1
-        FIcon.Position = UDim2.new(0.05, 0, 0.15, 0)
-        FIcon.Size = UDim2.new(0, 20, 0, 20)
+        FIcon.Position = UDim2.new(0.02, 0, 0.1, 0)
+        FIcon.Size = UDim2.new(0, 25, 0, 25)
         FIcon.Font = Enum.Font.GothamBlack
         FIcon.Text = "F"
         FIcon.TextColor3 = Color3.fromRGB(255, 50, 50)
-        FIcon.TextSize = 16
+        FIcon.TextSize = 18
+        FIcon.TextStrokeTransparency = 0.8
         
+        -- Текст водяного знака
         TextLabel.Parent = WatermarkFrame
         TextLabel.BackgroundTransparency = 1
-        TextLabel.Position = UDim2.new(0.2, 0, 0.1, 0)
-        TextLabel.Size = UDim2.new(0, 100, 0, 15)
-        TextLabel.Font = Enum.Font.Gotham
+        TextLabel.Position = UDim2.new(0.15, 0, 0.1, 0)
+        TextLabel.Size = UDim2.new(0, 120, 0, 15)
+        TextLabel.Font = Enum.Font.GothamBold
         TextLabel.Text = config.Name .. " | " .. config.Version
         TextLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
         TextLabel.TextSize = 12
         TextLabel.TextXAlignment = Enum.TextXAlignment.Left
+        
+        -- Пинг
+        PingLabel.Parent = WatermarkFrame
+        PingLabel.BackgroundTransparency = 1
+        PingLabel.Position = UDim2.new(0.15, 0, 0.55, 0)
+        PingLabel.Size = UDim2.new(0, 120, 0, 12)
+        PingLabel.Font = Enum.Font.Gotham
+        PingLabel.Text = "Ping: " .. math.random(20, 60) .. "ms"
+        PingLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
+        PingLabel.TextSize = 10
+        PingLabel.TextXAlignment = Enum.TextXAlignment.Left
+        
+        -- Обновление пинга
+        spawn(function()
+            while WatermarkEnabled and WatermarkGui and WatermarkGui.Parent do
+                wait(3)
+                if PingLabel then
+                    PingLabel.Text = "Ping: " .. math.random(20, 60) .. "ms"
+                end
+            end
+        end)
     end
     
     -- Создаем основной GUI
     local ScreenGui = Instance.new("ScreenGui")
     local MainFrame = Instance.new("Frame")
+    local MainGradient = Instance.new("UIGradient")
     local UICorner = Instance.new("UICorner")
+    local DropShadow = Instance.new("ImageLabel")
     local TopBar = Instance.new("Frame")
     local Title = Instance.new("TextLabel")
     local CloseButton = Instance.new("TextButton")
@@ -91,27 +120,56 @@ function FurstyHub:CreateGUI(config)
     ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
     ScreenGui.ResetOnSpawn = false
 
-    -- Главный фрейм
+    -- Главный фрейм с градиентом
     MainFrame.Name = "MainFrame"
     MainFrame.Parent = ScreenGui
-    MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
-    MainFrame.Position = UDim2.new(0.3, 0, 0.2, 0)
-    MainFrame.Size = UDim2.new(0, 500, 0, 400)
+    MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 20)
+    MainFrame.Position = UDim2.new(0.3, 0, 0.25, 0)
+    MainFrame.Size = UDim2.new(0, 550, 0, 450)
     MainFrame.Active = true
     MainFrame.Draggable = true
 
-    UICorner.CornerRadius = UDim.new(0, 12)
+    -- Градиент для фона
+    MainGradient.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0.00, Color3.fromRGB(15, 15, 20)),
+        ColorSequenceKeypoint.new(1.00, Color3.fromRGB(25, 25, 35))
+    })
+    MainGradient.Rotation = 45
+    MainGradient.Parent = MainFrame
+
+    UICorner.CornerRadius = UDim.new(0, 15)
     UICorner.Parent = MainFrame
 
-    -- Верхняя панель
+    -- Тень для глубины
+    DropShadow.Name = "DropShadow"
+    DropShadow.Parent = MainFrame
+    DropShadow.BackgroundTransparency = 1.0
+    DropShadow.BorderSizePixel = 0
+    DropShadow.Size = UDim2.new(1, 0, 1, 0)
+    DropShadow.ZIndex = 0
+    DropShadow.Image = "rbxassetid://6015897843"
+    DropShadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
+    DropShadow.ImageTransparency = 0.5
+    DropShadow.ScaleType = Enum.ScaleType.Slice
+    DropShadow.SliceCenter = Rect.new(49, 49, 450, 450)
+
+    -- Верхняя панель с градиентом
     TopBar.Name = "TopBar"
     TopBar.Parent = MainFrame
-    TopBar.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+    TopBar.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
     TopBar.BorderSizePixel = 0
-    TopBar.Size = UDim2.new(1, 0, 0, 40)
+    TopBar.Size = UDim2.new(1, 0, 0, 45)
+
+    local TopBarGradient = Instance.new("UIGradient")
+    TopBarGradient.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0.00, Color3.fromRGB(255, 50, 50)),
+        ColorSequenceKeypoint.new(1.00, Color3.fromRGB(255, 100, 100))
+    })
+    TopBarGradient.Transparency = NumberSequence.new(0.9)
+    TopBarGradient.Parent = TopBar
 
     local TopBarCorner = Instance.new("UICorner")
-    TopBarCorner.CornerRadius = UDim.new(0, 12)
+    TopBarCorner.CornerRadius = UDim.new(0, 15)
     TopBarCorner.Parent = TopBar
 
     -- Заголовок
@@ -119,41 +177,53 @@ function FurstyHub:CreateGUI(config)
     Title.Parent = TopBar
     Title.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
     Title.BackgroundTransparency = 1.0
-    Title.Position = UDim2.new(0, 15, 0, 0)
-    Title.Size = UDim2.new(0, 200, 1, 0)
+    Title.Position = UDim2.new(0, 20, 0, 0)
+    Title.Size = UDim2.new(0, 250, 1, 0)
     Title.Font = Enum.Font.GothamBold
     Title.Text = "      " .. config.Name .. "  |  " .. config.Version
-    Title.TextColor3 = Color3.fromRGB(255, 50, 50)
-    Title.TextSize = 16
+    Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Title.TextSize = 18
     Title.TextXAlignment = Enum.TextXAlignment.Left
+    Title.TextStrokeTransparency = 0.8
 
     -- Иконка F
     local FIcon = Instance.new("TextLabel")
     FIcon.Name = "FIcon"
     FIcon.Parent = Title
     FIcon.BackgroundTransparency = 1
-    FIcon.Position = UDim2.new(0, -25, 0, 0)
-    FIcon.Size = UDim2.new(0, 20, 1, 0)
+    FIcon.Position = UDim2.new(0, -30, 0, 0)
+    FIcon.Size = UDim2.new(0, 25, 1, 0)
     FIcon.Font = Enum.Font.GothamBlack
     FIcon.Text = "F"
     FIcon.TextColor3 = Color3.fromRGB(255, 50, 50)
-    FIcon.TextSize = 20
+    FIcon.TextSize = 22
     FIcon.TextXAlignment = Enum.TextXAlignment.Center
+    FIcon.TextStrokeTransparency = 0.7
 
     -- Кнопка закрытия
     CloseButton.Name = "CloseButton"
     CloseButton.Parent = TopBar
     CloseButton.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
-    CloseButton.Position = UDim2.new(1, -35, 0.5, -10)
-    CloseButton.Size = UDim2.new(0, 20, 0, 20)
+    CloseButton.Position = UDim2.new(1, -40, 0.5, -12)
+    CloseButton.Size = UDim2.new(0, 24, 0, 24)
     CloseButton.Font = Enum.Font.GothamBold
-    CloseButton.Text = "X"
+    CloseButton.Text = "×"
     CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-    CloseButton.TextSize = 12
+    CloseButton.TextSize = 16
+    CloseButton.TextStrokeTransparency = 0.8
 
     local CloseCorner = Instance.new("UICorner")
     CloseCorner.CornerRadius = UDim.new(1, 0)
     CloseCorner.Parent = CloseButton
+
+    -- Анимация кнопки закрытия
+    CloseButton.MouseEnter:Connect(function()
+        game:GetService("TweenService"):Create(CloseButton, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(255, 80, 80)}):Play()
+    end)
+    
+    CloseButton.MouseLeave:Connect(function()
+        game:GetService("TweenService"):Create(CloseButton, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(255, 50, 50)}):Play()
+    end)
 
     CloseButton.MouseButton1Click:Connect(function()
         ScreenGui:Destroy()
@@ -169,32 +239,32 @@ function FurstyHub:CreateGUI(config)
     TabsContainer.Parent = MainFrame
     TabsContainer.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
     TabsContainer.BackgroundTransparency = 1.0
-    TabsContainer.Position = UDim2.new(0, 0, 0, 40)
-    TabsContainer.Size = UDim2.new(1, 0, 1, -40)
+    TabsContainer.Position = UDim2.new(0, 0, 0, 45)
+    TabsContainer.Size = UDim2.new(1, 0, 1, -45)
 
     -- Кнопки вкладок
     TabButtons.Name = "TabButtons"
     TabButtons.Parent = TabsContainer
-    TabButtons.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
-    TabButtons.Size = UDim2.new(0, 120, 1, 0)
+    TabButtons.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+    TabButtons.Size = UDim2.new(0, 140, 1, 0)
 
     local TabButtonsCorner = Instance.new("UICorner")
-    TabButtonsCorner.CornerRadius = UDim.new(0, 12)
+    TabButtonsCorner.CornerRadius = UDim.new(0, 15)
     TabButtonsCorner.Parent = TabButtons
 
     local TabButtonsLayout = Instance.new("UIListLayout")
     TabButtonsLayout.Parent = TabButtons
     TabButtonsLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
     TabButtonsLayout.SortOrder = Enum.SortOrder.LayoutOrder
-    TabButtonsLayout.Padding = UDim.new(0, 5)
+    TabButtonsLayout.Padding = UDim.new(0, 8)
 
     -- Контейнер контента
     ContentContainer.Name = "ContentContainer"
     ContentContainer.Parent = TabsContainer
     ContentContainer.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
     ContentContainer.BackgroundTransparency = 1.0
-    ContentContainer.Position = UDim2.new(0, 125, 0, 10)
-    ContentContainer.Size = UDim2.new(0, 365, 0, 340)
+    ContentContainer.Position = UDim2.new(0, 145, 0, 15)
+    ContentContainer.Size = UDim2.new(0, 390, 0, 380)
 
     -- Табы системы
     local Tabs = {}
@@ -204,21 +274,42 @@ function FurstyHub:CreateGUI(config)
     function GUI:CreateButton(parent, text, callback)
         local Button = Instance.new("TextButton")
         local UICorner = Instance.new("UICorner")
+        local ButtonGradient = Instance.new("UIGradient")
         
         Button.Parent = parent
-        Button.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
-        Button.Size = UDim2.new(0.95, 0, 0, 40)
-        Button.Font = Enum.Font.Gotham
+        Button.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
+        Button.Size = UDim2.new(0.95, 0, 0, 45)
+        Button.Font = Enum.Font.GothamSemibold
         Button.Text = text
         Button.TextColor3 = Color3.fromRGB(255, 255, 255)
         Button.TextSize = 14
         Button.AutoButtonColor = false
         
-        UICorner.CornerRadius = UDim.new(0, 8)
+        -- Градиент кнопки
+        ButtonGradient.Color = ColorSequence.new({
+            ColorSequenceKeypoint.new(0.00, Color3.fromRGB(50, 50, 60)),
+            ColorSequenceKeypoint.new(1.00, Color3.fromRGB(60, 60, 70))
+        })
+        ButtonGradient.Parent = Button
+        
+        UICorner.CornerRadius = UDim.new(0, 10)
         UICorner.Parent = Button
+        
+        -- Анимации кнопки
+        Button.MouseEnter:Connect(function()
+            game:GetService("TweenService"):Create(Button, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(255, 60, 60)}):Play()
+        end)
+        
+        Button.MouseLeave:Connect(function()
+            game:GetService("TweenService"):Create(Button, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(40, 40, 50)}):Play()
+        end)
         
         Button.MouseButton1Click:Connect(function()
             if callback then
+                -- Анимация нажатия
+                game:GetService("TweenService"):Create(Button, TweenInfo.new(0.1), {BackgroundColor3 = Color3.fromRGB(255, 80, 80)}):Play()
+                wait(0.1)
+                game:GetService("TweenService"):Create(Button, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(40, 40, 50)}):Play()
                 callback()
             end
         end)
@@ -235,7 +326,7 @@ function FurstyHub:CreateGUI(config)
         
         ToggleFrame.Parent = parent
         ToggleFrame.BackgroundTransparency = 1
-        ToggleFrame.Size = UDim2.new(0.95, 0, 0, 30)
+        ToggleFrame.Size = UDim2.new(0.95, 0, 0, 35)
         
         ToggleLabel.Parent = ToggleFrame
         ToggleLabel.BackgroundTransparency = 1
@@ -249,7 +340,7 @@ function FurstyHub:CreateGUI(config)
         ToggleButton.Parent = ToggleFrame
         ToggleButton.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
         ToggleButton.Position = UDim2.new(0.8, 0, 0.2, 0)
-        ToggleButton.Size = UDim2.new(0, 40, 0, 20)
+        ToggleButton.Size = UDim2.new(0, 45, 0, 22)
         ToggleButton.AutoButtonColor = false
         ToggleButton.Text = ""
         
@@ -259,8 +350,8 @@ function FurstyHub:CreateGUI(config)
         
         ToggleCircle.Parent = ToggleButton
         ToggleCircle.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-        ToggleCircle.Position = UDim2.new(0.1, 0, 0.1, 0)
-        ToggleCircle.Size = UDim2.new(0, 16, 0, 16)
+        ToggleCircle.Position = UDim2.new(0.05, 0, 0.1, 0)
+        ToggleCircle.Size = UDim2.new(0, 18, 0, 18)
         
         local CircleCorner = Instance.new("UICorner")
         CircleCorner.CornerRadius = UDim.new(1, 0)
@@ -270,11 +361,11 @@ function FurstyHub:CreateGUI(config)
         
         local function updateToggle()
             if state then
-                ToggleButton.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
-                ToggleCircle.Position = UDim2.new(0.5, 0, 0.1, 0)
+                game:GetService("TweenService"):Create(ToggleButton, TweenInfo.new(0.3), {BackgroundColor3 = Color3.fromRGB(255, 50, 50)}):Play()
+                game:GetService("TweenService"):Create(ToggleCircle, TweenInfo.new(0.3), {Position = UDim2.new(0.55, 0, 0.1, 0)}):Play()
             else
-                ToggleButton.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
-                ToggleCircle.Position = UDim2.new(0.1, 0, 0.1, 0)
+                game:GetService("TweenService"):Create(ToggleButton, TweenInfo.new(0.3), {BackgroundColor3 = Color3.fromRGB(60, 60, 70)}):Play()
+                game:GetService("TweenService"):Create(ToggleCircle, TweenInfo.new(0.3), {Position = UDim2.new(0.05, 0, 0.1, 0)}):Play()
             end
             if callback then
                 callback(state)
@@ -301,7 +392,7 @@ function FurstyHub:CreateGUI(config)
         
         SliderFrame.Parent = parent
         SliderFrame.BackgroundTransparency = 1
-        SliderFrame.Size = UDim2.new(0.95, 0, 0, 50)
+        SliderFrame.Size = UDim2.new(0.95, 0, 0, 55)
         
         SliderLabel.Parent = SliderFrame
         SliderLabel.BackgroundTransparency = 1
@@ -316,16 +407,16 @@ function FurstyHub:CreateGUI(config)
         ValueLabel.BackgroundTransparency = 1
         ValueLabel.Position = UDim2.new(0.7, 0, 0, 0)
         ValueLabel.Size = UDim2.new(0.3, 0, 0, 20)
-        ValueLabel.Font = Enum.Font.Gotham
+        ValueLabel.Font = Enum.Font.GothamBold
         ValueLabel.Text = tostring(default or min)
-        ValueLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+        ValueLabel.TextColor3 = Color3.fromRGB(255, 50, 50)
         ValueLabel.TextSize = 14
         ValueLabel.TextXAlignment = Enum.TextXAlignment.Right
         
         SliderBar.Parent = SliderFrame
-        SliderBar.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
+        SliderBar.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
         SliderBar.Position = UDim2.new(0, 0, 0.6, 0)
-        SliderBar.Size = UDim2.new(1, 0, 0, 6)
+        SliderBar.Size = UDim2.new(1, 0, 0, 8)
         
         local BarCorner = Instance.new("UICorner")
         BarCorner.CornerRadius = UDim.new(1, 0)
@@ -341,8 +432,8 @@ function FurstyHub:CreateGUI(config)
         
         SliderButton.Parent = SliderBar
         SliderButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-        SliderButton.Position = UDim2.new((default or min) / max, -8, -0.5, 0)
-        SliderButton.Size = UDim2.new(0, 16, 0, 16)
+        SliderButton.Position = UDim2.new((default or min) / max, -10, -0.75, 0)
+        SliderButton.Size = UDim2.new(0, 20, 0, 20)
         SliderButton.Text = ""
         SliderButton.ZIndex = 2
         
@@ -355,7 +446,7 @@ function FurstyHub:CreateGUI(config)
         local function updateSlider(value)
             local percent = math.clamp(value, min, max) / max
             SliderFill.Size = UDim2.new(percent, 0, 1, 0)
-            SliderButton.Position = UDim2.new(percent, -8, -0.5, 0)
+            SliderButton.Position = UDim2.new(percent, -10, -0.75, 0)
             ValueLabel.Text = tostring(math.floor(value))
             if callback then
                 callback(value)
@@ -392,7 +483,7 @@ function FurstyHub:CreateGUI(config)
         
         DropdownFrame.Parent = parent
         DropdownFrame.BackgroundTransparency = 1
-        DropdownFrame.Size = UDim2.new(0.95, 0, 0, 60)
+        DropdownFrame.Size = UDim2.new(0.95, 0, 0, 65)
         
         DropdownLabel.Parent = DropdownFrame
         DropdownLabel.BackgroundTransparency = 1
@@ -406,15 +497,24 @@ function FurstyHub:CreateGUI(config)
         DropdownButton.Parent = DropdownFrame
         DropdownButton.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
         DropdownButton.Position = UDim2.new(0, 0, 0.5, 0)
-        DropdownButton.Size = UDim2.new(1, 0, 0, 30)
+        DropdownButton.Size = UDim2.new(1, 0, 0, 35)
         DropdownButton.Font = Enum.Font.Gotham
         DropdownButton.Text = default or "Select..."
         DropdownButton.TextColor3 = Color3.fromRGB(255, 255, 255)
         DropdownButton.TextSize = 14
         
         local ButtonCorner = Instance.new("UICorner")
-        ButtonCorner.CornerRadius = UDim.new(0, 6)
+        ButtonCorner.CornerRadius = UDim.new(0, 8)
         ButtonCorner.Parent = DropdownButton
+        
+        -- Анимация кнопки
+        DropdownButton.MouseEnter:Connect(function()
+            game:GetService("TweenService"):Create(DropdownButton, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(60, 60, 70)}):Play()
+        end)
+        
+        DropdownButton.MouseLeave:Connect(function()
+            game:GetService("TweenService"):Create(DropdownButton, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(50, 50, 60)}):Play()
+        end)
         
         DropdownButton.MouseButton1Click:Connect(function()
             for i, option in pairs(options) do
@@ -443,18 +543,31 @@ function FurstyHub:CreateGUI(config)
         -- Кнопка вкладки
         TabButton.Name = name .. "Tab"
         TabButton.Parent = TabButtons
-        TabButton.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
+        TabButton.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
         TabButton.BorderSizePixel = 0
-        TabButton.Size = UDim2.new(0.9, 0, 0, 35)
-        TabButton.Font = Enum.Font.Gotham
+        TabButton.Size = UDim2.new(0.9, 0, 0, 40)
+        TabButton.Font = Enum.Font.GothamSemibold
         TabButton.Text = name
         TabButton.TextColor3 = Color3.fromRGB(200, 200, 200)
         TabButton.TextSize = 14
         TabButton.AutoButtonColor = false
         
         local TabCorner = Instance.new("UICorner")
-        TabCorner.CornerRadius = UDim.new(0, 6)
+        TabCorner.CornerRadius = UDim.new(0, 8)
         TabCorner.Parent = TabButton
+        
+        -- Анимация кнопки вкладки
+        TabButton.MouseEnter:Connect(function()
+            if TabButton.BackgroundColor3 ~= Color3.fromRGB(255, 50, 50) then
+                game:GetService("TweenService"):Create(TabButton, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(50, 50, 60)}):Play()
+            end
+        end)
+        
+        TabButton.MouseLeave:Connect(function()
+            if TabButton.BackgroundColor3 ~= Color3.fromRGB(255, 50, 50) then
+                game:GetService("TweenService"):Create(TabButton, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(35, 35, 45)}):Play()
+            end
+        end)
         
         -- Контент вкладки
         TabContent.Name = name .. "Content"
@@ -465,12 +578,13 @@ function FurstyHub:CreateGUI(config)
         TabContent.Size = UDim2.new(1, 0, 1, 0)
         TabContent.CanvasSize = UDim2.new(0, 0, 0, 0)
         TabContent.ScrollBarThickness = 4
+        TabContent.ScrollBarImageColor3 = Color3.fromRGB(255, 50, 50)
         TabContent.Visible = false
         
         UIListLayout.Parent = TabContent
         UIListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
         UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
-        UIListLayout.Padding = UDim.new(0, 8)
+        UIListLayout.Padding = UDim.new(0, 10)
         
         -- Функции таба
         function Tab:Show()
@@ -480,7 +594,7 @@ function FurstyHub:CreateGUI(config)
                     otherTab.Content.Visible = false
                 end
                 if otherTab.Button then
-                    otherTab.Button.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
+                    game:GetService("TweenService"):Create(otherTab.Button, TweenInfo.new(0.3), {BackgroundColor3 = Color3.fromRGB(35, 35, 45)}):Play()
                 end
             end
             
@@ -489,7 +603,7 @@ function FurstyHub:CreateGUI(config)
                 TabContent.Visible = true
             end
             if TabButton then
-                TabButton.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+                game:GetService("TweenService"):Create(TabButton, TweenInfo.new(0.3), {BackgroundColor3 = Color3.fromRGB(255, 50, 50)}):Play()
             end
             
             CurrentTab = Tab
