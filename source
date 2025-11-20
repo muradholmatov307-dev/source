@@ -1,4 +1,4 @@
--- FurstyHub Core Library
+-- FurstyHub Core Library с Web Integration
 local FurstyHub = {}
 
 -- Защита от копирования
@@ -17,7 +17,9 @@ local KeySystem = {
     Enabled = false,
     ValidKeys = {},
     KeyURL = nil,
-    CurrentKey = nil
+    CurrentKey = nil,
+    GeneratedKeys = {},
+    WebInterfaceURL = "http://furstyhub.kesug.com/?i=1"
 }
 
 -- Функция для настройки Key System
@@ -25,15 +27,28 @@ function FurstyHub:SetupKeySystem(keys, keyURL)
     KeySystem.Enabled = true
     KeySystem.ValidKeys = keys or {}
     KeySystem.KeyURL = keyURL
+    
+    -- Всегда используем веб-интерфейс
+    getgenv().FurstyHubWebURL = KeySystem.WebInterfaceURL
 end
 
 -- Функция проверки ключа
 local function ValidateKey(key)
     if not KeySystem.Enabled then return true end
     
+    -- Проверка в локальных ключах
     for _, validKey in pairs(KeySystem.ValidKeys) do
         if key == validKey then
             KeySystem.CurrentKey = key
+            return true
+        end
+    end
+    
+    -- Проверка в сгенерированных ключах
+    for _, generatedKey in pairs(KeySystem.GeneratedKeys) do
+        if key == generatedKey.value and not generatedKey.used then
+            KeySystem.CurrentKey = key
+            generatedKey.used = true
             return true
         end
     end
@@ -72,6 +87,7 @@ function FurstyHub:CreateGUI(config)
         local InputBox = Instance.new("TextBox")
         local SubmitButton = Instance.new("TextButton")
         local MessageLabel = Instance.new("TextLabel")
+        local WebButton = Instance.new("TextButton")
         
         KeyGUI.Name = "KeySystemGUI"
         KeyGUI.Parent = game.CoreGui
@@ -81,7 +97,7 @@ function FurstyHub:CreateGUI(config)
         MainFrame.Parent = KeyGUI
         MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
         MainFrame.Position = UDim2.new(0.4, 0, 0.4, 0)
-        MainFrame.Size = UDim2.new(0, 300, 0, 200)
+        MainFrame.Size = UDim2.new(0, 350, 0, 250)
         
         UICorner.CornerRadius = UDim.new(0, 12)
         UICorner.Parent = MainFrame
@@ -89,7 +105,7 @@ function FurstyHub:CreateGUI(config)
         Title.Name = "Title"
         Title.Parent = MainFrame
         Title.BackgroundTransparency = 1
-        Title.Position = UDim2.new(0, 0, 0.1, 0)
+        Title.Position = UDim2.new(0, 0, 0.05, 0)
         Title.Size = UDim2.new(1, 0, 0, 30)
         Title.Font = Enum.Font.GothamBold
         Title.Text = config.Name .. " Key System"
@@ -99,7 +115,7 @@ function FurstyHub:CreateGUI(config)
         InputBox.Name = "InputBox"
         InputBox.Parent = MainFrame
         InputBox.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
-        InputBox.Position = UDim2.new(0.1, 0, 0.4, 0)
+        InputBox.Position = UDim2.new(0.1, 0, 0.25, 0)
         InputBox.Size = UDim2.new(0.8, 0, 0, 35)
         InputBox.Font = Enum.Font.Gotham
         InputBox.PlaceholderText = "Enter your key..."
@@ -114,7 +130,7 @@ function FurstyHub:CreateGUI(config)
         SubmitButton.Name = "SubmitButton"
         SubmitButton.Parent = MainFrame
         SubmitButton.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
-        SubmitButton.Position = UDim2.new(0.25, 0, 0.7, 0)
+        SubmitButton.Position = UDim2.new(0.25, 0, 0.45, 0)
         SubmitButton.Size = UDim2.new(0.5, 0, 0, 35)
         SubmitButton.Font = Enum.Font.GothamBold
         SubmitButton.Text = "SUBMIT KEY"
@@ -125,15 +141,31 @@ function FurstyHub:CreateGUI(config)
         ButtonCorner.CornerRadius = UDim.new(0, 8)
         ButtonCorner.Parent = SubmitButton
         
+        -- Кнопка для веб-интерфейса
+        WebButton.Name = "WebButton"
+        WebButton.Parent = MainFrame
+        WebButton.BackgroundColor3 = Color3.fromRGB(50, 50, 200)
+        WebButton.Position = UDim2.new(0.1, 0, 0.65, 0)
+        WebButton.Size = UDim2.new(0.8, 0, 0, 40)
+        WebButton.Font = Enum.Font.GothamBold
+        WebButton.Text = "🌐 GET KEY FROM WEBSITE"
+        WebButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+        WebButton.TextSize = 14
+        
+        local WebButtonCorner = Instance.new("UICorner")
+        WebButtonCorner.CornerRadius = UDim.new(0, 8)
+        WebButtonCorner.Parent = WebButton
+        
         MessageLabel.Name = "MessageLabel"
         MessageLabel.Parent = MainFrame
         MessageLabel.BackgroundTransparency = 1
         MessageLabel.Position = UDim2.new(0, 0, 0.85, 0)
-        MessageLabel.Size = UDim2.new(1, 0, 0, 20)
+        MessageLabel.Size = UDim2.new(1, 0, 0, 30)
         MessageLabel.Font = Enum.Font.Gotham
-        MessageLabel.Text = "Get key from Discord: " .. (config.Discord or "dsc.gg/furstyhub")
+        MessageLabel.Text = "Visit website to get your key: furstyhub.kesug.com"
         MessageLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
         MessageLabel.TextSize = 12
+        MessageLabel.TextWrapped = true
         
         -- Обновляем ключи с сервера
         spawn(function()
@@ -145,32 +177,56 @@ function FurstyHub:CreateGUI(config)
             end
         end)
         
-        -- Обработчик кнопки
+        -- Обработчик кнопки отправки
         SubmitButton.MouseButton1Click:Connect(function()
             local key = InputBox.Text:gsub("%s+", "")
             
             if ValidateKey(key) then
-                MessageLabel.Text = "✅ Key accepted!"
+                MessageLabel.Text = "✅ Key accepted! Loading GUI..."
                 MessageLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
                 
-                wait(1)
+                wait(1.5)
                 KeyGUI:Destroy()
-                
-                -- Создаем основной GUI после успешной проверки
                 return CreateMainGUI(config)
             else
-                MessageLabel.Text = "❌ Invalid key!"
+                MessageLabel.Text = "❌ Invalid key! Get key from website."
                 MessageLabel.TextColor3 = Color3.fromRGB(255, 50, 50)
             end
         end)
         
-        -- Копирование Discord по клику
+        -- Обработчик кнопки веб-интерфейса
+        WebButton.MouseButton1Click:Connect(function()
+            MessageLabel.Text = "✅ Website link copied to clipboard!"
+            MessageLabel.TextColor3 = Color3.fromRGB(0, 200, 255)
+            setclipboard("http://furstyhub.kesug.com/?i=1")
+            
+            -- Показываем инструкцию
+            local Notification = Instance.new("TextLabel")
+            Notification.Parent = MainFrame
+            Notification.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+            Notification.Position = UDim2.new(0.05, 0, 0.1, 0)
+            Notification.Size = UDim2.new(0.9, 0, 0, 60)
+            Notification.Font = Enum.Font.Gotham
+            Notification.Text = "Website link copied!\nPaste in browser to get your key."
+            Notification.TextColor3 = Color3.fromRGB(255, 255, 255)
+            Notification.TextSize = 12
+            Notification.TextWrapped = true
+            Notification.ZIndex = 10
+            
+            local NotifCorner = Instance.new("UICorner")
+            NotifCorner.CornerRadius = UDim.new(0, 8)
+            NotifCorner.Parent = Notification
+            
+            wait(4)
+            Notification:Destroy()
+        end)
+        
+        -- Копирование сайта по клику
         MessageLabel.MouseButton1Click:Connect(function()
-            local discord = config.Discord or "dsc.gg/furstyhub"
-            setclipboard(discord)
-            MessageLabel.Text = "✅ Discord copied!"
+            setclipboard("http://furstyhub.kesug.com/?i=1")
+            MessageLabel.Text = "✅ Website link copied!"
             wait(2)
-            MessageLabel.Text = "Get key from Discord: " .. discord
+            MessageLabel.Text = "Visit website to get your key: furstyhub.kesug.com"
         end)
         
         -- Enter для отправки
@@ -187,7 +243,7 @@ function FurstyHub:CreateGUI(config)
     return CreateMainGUI(config)
 end
 
--- Основная функция создания GUI
+-- Основная функция создания GUI (ваш существующий код)
 local function CreateMainGUI(config)
     if not config then config = {} end
     
@@ -725,12 +781,100 @@ local function CreateMainGUI(config)
         end
     end
 
+    -- Добавляем вкладку для управления ключами
+    local KeyTab = GUI:CreateTab("Keys")
+    
+    KeyTab:AddButton("🌐 Get Key From Website", function()
+        setclipboard("http://furstyhub.kesug.com/?i=1")
+        
+        -- Показываем уведомление
+        local Notification = Instance.new("TextLabel")
+        Notification.Parent = ScreenGui
+        Notification.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+        Notification.Position = UDim2.new(0.3, 0, 0.1, 0)
+        Notification.Size = UDim2.new(0, 300, 0, 60)
+        Notification.Font = Enum.Font.Gotham
+        Notification.Text = "Website link copied!\nPaste in browser to get your key."
+        Notification.TextColor3 = Color3.fromRGB(255, 255, 255)
+        Notification.TextSize = 14
+        Notification.TextWrapped = true
+        Notification.ZIndex = 100
+        
+        local NotifCorner = Instance.new("UICorner")
+        NotifCorner.CornerRadius = UDim.new(0, 8)
+        NotifCorner.Parent = Notification
+        
+        wait(4)
+        Notification:Destroy()
+    end)
+    
+    KeyTab:AddButton("📋 Check Key Status", function()
+        if KeySystem.CurrentKey then
+            setclipboard(KeySystem.CurrentKey)
+            
+            local Notification = Instance.new("TextLabel")
+            Notification.Parent = ScreenGui
+            Notification.BackgroundColor3 = Color3.fromRGB(30, 60, 30)
+            Notification.Position = UDim2.new(0.3, 0, 0.1, 0)
+            Notification.Size = UDim2.new(0, 300, 0, 40)
+            Notification.Font = Enum.Font.Gotham
+            Notification.Text = "✅ Key is active! Key copied to clipboard."
+            Notification.TextColor3 = Color3.fromRGB(255, 255, 255)
+            Notification.TextSize = 14
+            Notification.ZIndex = 100
+            
+            local NotifCorner = Instance.new("UICorner")
+            NotifCorner.CornerRadius = UDim.new(0, 8)
+            NotifCorner.Parent = Notification
+            
+            wait(3)
+            Notification:Destroy()
+        else
+            local Notification = Instance.new("TextLabel")
+            Notification.Parent = ScreenGui
+            Notification.BackgroundColor3 = Color3.fromRGB(60, 30, 30)
+            Notification.Position = UDim2.new(0.3, 0, 0.1, 0)
+            Notification.Size = UDim2.new(0, 300, 0, 40)
+            Notification.Font = Enum.Font.Gotham
+            Notification.Text = "❌ No active key! Get key from website."
+            Notification.TextColor3 = Color3.fromRGB(255, 255, 255)
+            Notification.TextSize = 14
+            Notification.ZIndex = 100
+            
+            local NotifCorner = Instance.new("UICorner")
+            NotifCorner.CornerRadius = UDim.new(0, 8)
+            NotifCorner.Parent = Notification
+            
+            wait(3)
+            Notification:Destroy()
+        end
+    end)
+
     spawn(function()
         wait(1)
         UpdateWatermark()
     end)
 
     return GUI
+end
+
+-- НОВАЯ ФУНКЦИЯ: Добавление ключей из веб-интерфейса
+function FurstyHub:AddWebKeys(keysData)
+    if not keysData or type(keysData) ~= "table" then return false end
+    
+    for _, keyInfo in pairs(keysData) do
+        if keyInfo.value and keyInfo.type then
+            table.insert(KeySystem.GeneratedKeys, {
+                value = keyInfo.value,
+                type = keyInfo.type,
+                created = keyInfo.created or os.time(),
+                expires = keyInfo.expires,
+                used = false
+            })
+        end
+    end
+    
+    return true
 end
 
 return FurstyHub
