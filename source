@@ -204,12 +204,12 @@ function FurstyHub:CreateGUI(config)
     FIcon.Name = "FIcon"
     FIcon.Parent = Title
     FIcon.BackgroundTransparency = 1
-    FIcon.Position = UDim2.new(0, -25, 0, 0)
+    FIcon.Position = UDim2.new(0, -20, 0, 0)
     FIcon.Size = UDim2.new(0, 20, 1, 0)
     FIcon.Font = Enum.Font.GothamBlack
-    FIcon.Text = ""
+    FIcon.Text = "F"
     FIcon.TextColor3 = Color3.fromRGB(255, 50, 50)
-    FIcon.TextSize = 20
+    FIcon.TextSize = 10
     FIcon.TextXAlignment = Enum.TextXAlignment.Center
 
     -- Кнопка закрытия
