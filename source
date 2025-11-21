@@ -1,6 +1,7 @@
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
 
 local CSGUI = {}
 
@@ -91,7 +92,8 @@ function CSGUI.Create(config)
         MainFrame = mainFrame,
         Tabs = {},
         CurrentTab = 1,
-        Elements = {}
+        Elements = {},
+        AimBot = {} -- Добавляем аим систему
     }
 
     -- Функция для создания вкладки
@@ -519,6 +521,239 @@ function CSGUI.Create(config)
         table.insert(tab.Elements, {Name = name, Type = "ColorPicker", Object = colorPickerObj})
         
         return colorPickerObj
+    end
+
+    -- ФУНКЦИЯ ДЛЯ СОЗДАНИЯ АИМ СИСТЕМЫ
+    function self.CreateAimBot(tab)
+        local localPlayer = Players.LocalPlayer
+        local camera = workspace.CurrentCamera
+        
+        -- Создаем FOV круг
+        local fovGui = Instance.new("ScreenGui")
+        fovGui.Name = "FOVCircleGui"
+        fovGui.ResetOnSpawn = false
+        fovGui.Parent = localPlayer:WaitForChild("PlayerGui")
+
+        local fovFrame = Instance.new("Frame")
+        fovFrame.Size = UDim2.new(0, 100, 0, 100)
+        fovFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+        fovFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+        fovFrame.BackgroundColor3 = Color3.new(1, 0, 0)
+        fovFrame.BackgroundTransparency = 0.7
+        fovFrame.BorderSizePixel = 0
+        fovFrame.Parent = fovGui
+
+        local UICorner = Instance.new("UICorner")
+        UICorner.CornerRadius = UDim.new(1, 0)
+        UICorner.Parent = fovFrame
+
+        -- Крестик для прицеливания
+        local crosshair = Instance.new("Frame")
+        crosshair.Size = UDim2.new(0, 2, 0, 2)
+        crosshair.AnchorPoint = Vector2.new(0.5, 0.5)
+        crosshair.Position = UDim2.new(0.5, 0, 0.5, 0)
+        crosshair.BackgroundColor3 = Color3.new(1, 1, 1)
+        crosshair.BorderSizePixel = 0
+        crosshair.Parent = fovFrame
+
+        -- Элементы GUI для аима
+        local aimEnabled = self.CreateToggle("Aim Enabled", true, tab)
+        local fovSlider = self.CreateSlider("FOV Size", 50, 200, 100, tab)
+        local smoothSlider = self.CreateSlider("Smoothness", 0.1, 1, 0.3, tab)
+        local teamCheck = self.CreateToggle("Team Check", true, tab)
+        local visibleCheck = self.CreateToggle("Visible Check", true, tab)
+        local showFOV = self.CreateToggle("Show FOV", true, tab)
+        local fovColor = self.CreateColorPicker("FOV Color", Color3.new(1, 0, 0), tab)
+
+        -- Переменные аима
+        local currentTarget = nil
+        
+        -- Функция проверки видимости
+        local function isVisible(targetPosition)
+            if not visibleCheck:GetValue() then return true end
+            
+            if not localPlayer.Character or not localPlayer.Character:FindFirstChild("Head") then
+                return false
+            end
+            
+            local origin = localPlayer.Character.Head.Position
+            local direction = (targetPosition - origin).Unit
+            local raycastParams = RaycastParams.new()
+            raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
+            raycastParams.FilterDescendantsInstances = {localPlayer.Character}
+            
+            local raycastResult = workspace:Raycast(origin, direction * 1000, raycastParams)
+            
+            if raycastResult then
+                local hitPlayer = Players:GetPlayerFromCharacter(raycastResult.Instance:FindFirstAncestorOfClass("Model"))
+                return hitPlayer and hitPlayer == Players:GetPlayerFromCharacter(raycastResult.Instance:FindFirstAncestorOfClass("Model"))
+            end
+            
+            return true
+        end
+
+        -- Функция проверки команды
+        local function isEnemy(player)
+            if not teamCheck:GetValue() then return true end
+            
+            local localTeam = localPlayer.Team
+            local targetTeam = player.Team
+            
+            if not localTeam or not targetTeam then
+                return true
+            end
+            
+            return localTeam ~= targetTeam
+        end
+
+        -- Функция для безопасного получения позиции игрока
+        local function getPlayerPosition()
+            if localPlayer.Character and localPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                return localPlayer.Character.HumanoidRootPart.Position
+            elseif localPlayer.Character and localPlayer.Character:FindFirstChild("Head") then
+                return localPlayer.Character.Head.Position
+            else
+                return camera.CFrame.Position
+            end
+        end
+
+        -- Функция для безопасного получения взгляда игрока
+        local function getPlayerLookVector()
+            if localPlayer.Character and localPlayer.Character:FindFirstChild("Head") then
+                return localPlayer.Character.Head.CFrame.LookVector
+            else
+                return camera.CFrame.LookVector
+            end
+        end
+
+        -- Функция проверки в FOV
+        local function isInFOV(targetPosition)
+            local playerPos = getPlayerPosition()
+            local lookVector = getPlayerLookVector()
+            
+            local directionToTarget = (targetPosition - playerPos).Unit
+            local dotProduct = directionToTarget:Dot(lookVector)
+            local angle = math.deg(math.acos(dotProduct))
+            
+            return angle <= fovSlider:GetValue() / 2
+        end
+
+        -- Функция поиска ближайшего игрока
+        local function findNearestPlayer()
+            local nearestPlayer = nil
+            local shortestDistance = math.huge
+            
+            for _, player in pairs(Players:GetPlayers()) do
+                if player ~= localPlayer and 
+                   player.Character and 
+                   player.Character:FindFirstChild("HumanoidRootPart") and
+                   player.Character:FindFirstChild("Humanoid") and
+                   player.Character.Humanoid.Health > 0 and
+                   isEnemy(player) then
+                    
+                    local targetPos = player.Character.HumanoidRootPart.Position
+                    local playerPos = getPlayerPosition()
+                    local distance = (playerPos - targetPos).Magnitude
+                    
+                    if distance < shortestDistance and 
+                       isInFOV(targetPos) and 
+                       isVisible(targetPos) then
+                        
+                        shortestDistance = distance
+                        nearestPlayer = player
+                    end
+                end
+            end
+            
+            return nearestPlayer
+        end
+
+        -- Функция для управления мышью
+        local function moveMouseToTarget(targetPosition)
+            if not aimEnabled:GetValue() then return end
+            
+            local targetScreenPos, visible = camera:WorldToScreenPoint(targetPosition)
+            local viewportSize = camera.ViewportSize
+            
+            if visible then
+                local centerX = viewportSize.X / 2
+                local centerY = viewportSize.Y / 2
+                
+                local deltaX = (targetScreenPos.X - centerX) * smoothSlider:GetValue()
+                local deltaY = (targetScreenPos.Y - centerY) * smoothSlider:GetValue()
+                
+                mousemoverel(deltaX, deltaY)
+            end
+        end
+
+        -- Альтернативный метод: управление камерой
+        local function smoothCameraAim(targetPosition)
+            if not aimEnabled:GetValue() then return end
+            
+            local currentCFrame = camera.CFrame
+            local targetCFrame = CFrame.lookAt(currentCFrame.Position, targetPosition)
+            
+            local newCFrame = currentCFrame:Lerp(targetCFrame, smoothSlider:GetValue() * 0.1)
+            camera.CFrame = newCFrame
+        end
+
+        -- Функция обновления цвета FOV
+        local function updateFOVColor()
+            if not aimEnabled:GetValue() then
+                fovFrame.BackgroundColor3 = Color3.new(1, 0, 0) -- красный когда выключен
+            elseif currentTarget then
+                fovFrame.BackgroundColor3 = Color3.new(0, 0, 1) -- синий когда цель найдена
+            else
+                fovFrame.BackgroundColor3 = fovColor:GetValue() -- цвет из пикера когда включен
+            end
+        end
+
+        -- Основной цикл аима
+        local aimConnection
+        aimConnection = RunService.RenderStepped:Connect(function()
+            -- Обновляем видимость FOV
+            fovGui.Enabled = showFOV:GetValue()
+            
+            if showFOV:GetValue() then
+                -- Обновляем размер FOV
+                local fovSize = fovSlider:GetValue()
+                fovFrame.Size = UDim2.new(0, fovSize, 0, fovSize)
+                fovFrame.Position = UDim2.new(0.5, -fovSize/2, 0.5, -fovSize/2)
+                
+                -- Обновляем цвет
+                updateFOVColor()
+            end
+            
+            -- Поиск и аим на цель
+            local target = findNearestPlayer()
+            if target and target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
+                currentTarget = target.Character.HumanoidRootPart.Position
+                
+                moveMouseToTarget(currentTarget)
+                smoothCameraAim(currentTarget)
+            else
+                currentTarget = nil
+            end
+        end)
+
+        -- Возвращаем объект аима для управления
+        local aimBotObj = {
+            Enable = function() aimEnabled:SetValue(true) end,
+            Disable = function() aimEnabled:SetValue(false) end,
+            SetFOV = function(value) fovSlider:SetValue(value) end,
+            SetSmoothness = function(value) smoothSlider:SetValue(value) end,
+            Destroy = function() 
+                if aimConnection then
+                    aimConnection:Disconnect()
+                end
+                fovGui:Destroy()
+            end
+        }
+        
+        table.insert(self.Elements, {Name = "AimBot", Type = "AimBot", Object = aimBotObj})
+        table.insert(tab.Elements, {Name = "AimBot", Type = "AimBot", Object = aimBotObj})
+        
+        return aimBotObj
     end
 
     -- Делаем GUI перетаскиваемым
