@@ -871,20 +871,36 @@ function FurstyHub:CreateGUI(config)
             end
         end)
         
-        -- Копирование сайта по клику
-        MessageLabel.MouseButton1Click:Connect(function()
+        -- Исправление: Заменяем TextLabel на TextButton для кликабельности
+        local ClickableMessage = Instance.new("TextButton")
+        ClickableMessage.Name = "ClickableMessage"
+        ClickableMessage.Parent = MainFrame
+        ClickableMessage.BackgroundTransparency = 1
+        ClickableMessage.Position = UDim2.new(0, 0, 0.85, 0)
+        ClickableMessage.Size = UDim2.new(1, 0, 0, 30)
+        ClickableMessage.Font = Enum.Font.Gotham
+        ClickableMessage.Text = "Visit website to get your key: furstyhub.kesug.com"
+        ClickableMessage.TextColor3 = Color3.fromRGB(150, 150, 150)
+        ClickableMessage.TextSize = 12
+        ClickableMessage.TextWrapped = true
+        ClickableMessage.AutoButtonColor = false
+        
+        ClickableMessage.MouseButton1Click:Connect(function()
             if setclipboard then
                 setclipboard("http://furstyhub.kesug.com/?i=1")
             end
-            MessageLabel.Text = "✅ Website link copied!"
+            ClickableMessage.Text = "✅ Website link copied!"
             wait(2)
-            MessageLabel.Text = "Visit website to get your key: furstyhub.kesug.com"
+            ClickableMessage.Text = "Visit website to get your key: furstyhub.kesug.com"
         end)
+        
+        -- Удаляем старый MessageLabel
+        MessageLabel:Destroy()
         
         -- Enter для отправки
         InputBox.FocusLost:Connect(function(enterPressed)
             if enterPressed then
-                SubmitButton.MouseButton1Click:Connect()
+                SubmitButton.MouseButton1Click()
             end
         end)
         
